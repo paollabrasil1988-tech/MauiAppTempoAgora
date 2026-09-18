@@ -1,6 +1,6 @@
-﻿using MauiAppTempoAgora.Models;
+﻿using Microsoft.Maui.Networking;
+using MauiAppTempoAgora.Models;
 using MauiAppTempoAgora.Services;
-using System.Threading.Tasks;
 
 namespace MauiAppTempoAgora
 {
@@ -13,12 +13,15 @@ namespace MauiAppTempoAgora
             InitializeComponent();
         }
 
-
-
         private async void Button_Clicked(object sender, EventArgs e)
         {
             try
             {
+                if (Connectivity.Current.NetworkAccess != NetworkAccess.Internet)
+                {
+                    await DisplayAlert("Sem Conexão", "Você está sem conexão com a internet.", "OK");
+                    return;
+                }
                 if (!string.IsNullOrEmpty(txt_cidade.Text))
                 {
                     Tempo? t = await DataService.GetPrevisao(txt_cidade.Text);
@@ -31,13 +34,18 @@ namespace MauiAppTempoAgora
                                          $"Nascer do Sol: {t.sunrise} \n" +
                                          $"Por do Sol: {t.sunset} \n" +
                                          $"Temp Máx: {t.temp_max} \n" +
-                                         $"Temp Min: {t.temp_min} \n";
+                                         $"Temp Min: {t.temp_min} \n" +
+                                         $"Descrição: {t.description} \n" +
+                                         $"Velocidade do Vento: {t.speed} m/s \n" +
+                                         $"Visibilidade: {t.visibility} m";
+
 
                         lbl_res.Text = dados_previsao;
 
                     }
                     else
                     {
+                        await DisplayAlert("Erro", "Cidade não encontrada. Verifique o nome digitado.", "OK");
                         lbl_res.Text = "Sem dados de Previsão";
                     }
                 }else
@@ -47,7 +55,7 @@ namespace MauiAppTempoAgora
 
             }catch (Exception ex)
             {
-                await DisplayAlert("Ops", ex.Message, "Ok");
+                await DisplayAlert("Erro Inesperado", ex.Message, "Ok");
             }
 
         }

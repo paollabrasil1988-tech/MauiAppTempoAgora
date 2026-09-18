@@ -1,4 +1,5 @@
 ﻿using MauiAppTempoAgora.Models;
+using System.Net;
 using System.Text.Json.Nodes;
 
 namespace MauiAppTempoAgora.Services
@@ -14,11 +15,15 @@ namespace MauiAppTempoAgora.Services
             string chave = "7046260d0783435cfd8890bd1d75a99d";
 
             string url = $"https://api.openweathermap.org/data/2.5/weather?" +
-                         $"q={Uri.EscapeDataString(cidade)}&units=metric&appid={chave}";
+                         $"q={Uri.EscapeDataString(cidade)}&units=metric&appid={chave}&lang=pt_br";
 
             try
             {
                 HttpResponseMessage resp = await client.GetAsync(url);
+                if (resp.StatusCode == HttpStatusCode.NotFound)
+                {
+                    return null;
+                }
 
                 if (resp.IsSuccessStatusCode)
                 {
@@ -27,7 +32,7 @@ namespace MauiAppTempoAgora.Services
 
                     if (rascunho != null)
                     {
-                        // Unix Epoch correto para conversão dos timestamps
+                       
                         long sunriseUnix = (long)(rascunho["sys"]?["sunrise"] ?? 0);
                         long sunsetUnix = (long)(rascunho["sys"]?["sunset"] ?? 0);
 
@@ -51,8 +56,7 @@ namespace MauiAppTempoAgora.Services
                 }
             }
             catch (Exception ex)
-            {
-                // Trata falhas de rede ou parsing sem travar o app
+            { 
                 System.Diagnostics.Debug.WriteLine($"Erro ao buscar clima: {ex.Message}");
             }
 
